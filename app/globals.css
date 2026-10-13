@@ -79,6 +79,7 @@ tr.row:hover, tr.row.sel { background: var(--accent-soft); }
 .prog i { width: 10px; height: 6px; border-radius: 2px; background: var(--grid); display: block; }
 .prog i.on { background: var(--accent); }
 .reason { min-width: 260px; }
+.pub { display: block; white-space: nowrap; }
 
 .empty { padding: 28px 16px; text-align: center; color: var(--ink-2); display: grid; gap: 4px; justify-items: center; }
 .empty b { color: var(--ink); }

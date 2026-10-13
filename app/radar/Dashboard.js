@@ -35,6 +35,7 @@ function ReasonCard({ r, onOpen }) {
         {safeUrl ? <a href={safeUrl} target="_blank" rel="noopener noreferrer">{r.source || "link"}</a> : <span>{r.source}</span>}
         <span className={r.matches_numbers === "no" ? "down" : "note"}>Numbers: {chk}</span>
       </div>
+      {r.published_at && <div className="note">Published {fmtStamp(r.published_at)}</div>}
     </li>
   );
 }
@@ -49,7 +50,12 @@ function ReasonRow({ r, onOpen }) {
       <td className={`dir ${dcls}`} title={r.direction || "mixed"}>{dir}</td>
       <td>{r.category || "—"}</td>
       <td className="reason">{r.reason}</td>
-      <td>{safeUrl ? <a href={safeUrl} target="_blank" rel="noopener noreferrer">{r.source || "link"}</a> : r.source || "—"}</td>
+      <td>
+        {safeUrl ? <a href={safeUrl} target="_blank" rel="noopener noreferrer">{r.source || "link"}</a> : r.source || "—"}
+        <span className="note pub" title={r.captured_at ? `Recorded ${fmtStamp(r.captured_at)}` : undefined}>
+          {r.published_at ? fmtStamp(r.published_at) : "time not given"}
+        </span>
+      </td>
       <td className={r.matches_numbers === "no" ? "down" : ""}>{chk}</td>
     </tr>
   );
