@@ -61,6 +61,56 @@ function ReasonRow({ r, onOpen }) {
   );
 }
 
+// One stock as a watchlist row (wide screens) or card (phones)
+function stockVals(e) {
+  const cr = isNum(e.cum_log_return) ? e.cum_log_return : cum(e.prices, "log_return");
+  const ca = isNum(e.cum_abnormal) ? e.cum_abnormal : cum(e.prices, "abnormal");
+  return { d1: day1(e.prices, "log_return"), a1: day1(e.prices, "abnormal"), cr, ca };
+}
+
+const STOCK_HEAD = (
+  <tr>
+    <th>Stock</th><th>Results filed (IST)</th><th>Reaction day</th><th>Progress</th>
+    <th className="n">Day 1</th><th className="n">Day 1 abnormal</th><th className="n">Total so far</th><th className="n">Abnormal so far</th><th>Status</th>
+  </tr>
+);
+
+function StockRow({ e, selected, onClick }) {
+  const { d1, a1, cr, ca } = stockVals(e);
+  return (
+    <tr className={`row ${selected ? "sel" : ""}`} onClick={onClick}>
+      <td><button type="button" className="sym">{e.symbol}</button><span className="co">{e.company}</span></td>
+      <td className="num">{e.results_filed_at ? fmtStamp(e.results_filed_at) : e.meeting_date ? `Meeting ${fmtDay(e.meeting_date)}` : "—"}</td>
+      <td>{fmtDay(e.reaction_day)}</td>
+      <td><span className="prog">{[1, 2, 3, 4, 5].map((i) => <i key={i} className={i <= (e.day_count || 0) ? "on" : ""} />)}</span><span className="note">{e.day_count || 0}/5</span></td>
+      {[d1, a1, cr, ca].map((v, i) => <td key={i} className={`n ${tone(v)}`}>{pct(v)}</td>)}
+      <td><Pill status={e.status} /></td>
+    </tr>
+  );
+}
+
+function StockCard({ e, selected, onClick }) {
+  const { d1, ca } = stockVals(e);
+  return (
+    <li className={`card tap ${selected ? "sel" : ""}`} onClick={onClick}>
+      <div className="card-top">
+        <span><button type="button" className="sym">{e.symbol}</button><span className="co">{e.company}</span></span>
+        <Pill status={e.status} />
+      </div>
+      <div className="card-nums">
+        <span><span className="note">Day 1</span><b className={`num ${tone(d1)}`}>{pct(d1)}</b></span>
+        <span><span className="note">Abnormal so far</span><b className={`num ${tone(ca)}`}>{pct(ca)}</b></span>
+        <span><span className="note">Progress</span><b className="num">{e.day_count || 0}/5</b></span>
+      </div>
+      <div className="note">
+        {e.results_filed_at ? `Filed ${fmtStamp(e.results_filed_at)} · reaction ${fmtDay(e.reaction_day)}` : e.meeting_date ? `Board meeting ${fmtDay(e.meeting_date)}` : ""}
+      </div>
+    </li>
+  );
+}
+
+const byDayThenDate = (a, b) => (a.day_n ?? 0) - (b.day_n ?? 0) || (a.date || "").localeCompare(b.date || "");
+
 function Detail({ e, onClose }) {
   const prices = [...(e.prices || [])].sort((a, b) => (a.day_n ?? 0) - (b.day_n ?? 0));
   const reasons = [...(e.reasons || [])].sort((a, b) => (a.day_n ?? 0) - (b.day_n ?? 0));
@@ -169,6 +219,14 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => { load(""); }, [load]);
+  // /radar?stock=TCS_Q2FY27 opens that stock's detail (used by Past results)
+  const [wanted, setWanted] = useState(null);
+  useEffect(() => { try { setWanted(new URLSearchParams(window.location.search).get("stock")); } catch {} }, []);
+  useEffect(() => {
+    if (!wanted || !data?.events?.[wanted]) return;
+    setSel(wanted); setWanted(null);
+    setTimeout(() => document.getElementById("detail")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+  }, [wanted, data]);
   useEffect(() => { const t = setInterval(() => load(season), 5 * 60 * 1000); return () => clearInterval(t); }, [load, season]);
 
   const events = useMemo(() => Object.entries(data?.events || {}).map(([id, e]) => ({ ...e, id })), [data]);
@@ -186,9 +244,11 @@ export default function Dashboard() {
     .filter((e) => (filter === "all" || bucket(e.status) === filter) && match(e))
     .sort((a, b) => (b.reaction_day || b.meeting_date || "").localeCompare(a.reaction_day || a.meeting_date || "") || (a.symbol || "").localeCompare(b.symbol || ""));
 
-  const reasons = events.filter(match)
-    .flatMap((e) => (e.reasons || []).map((r) => ({ ...r, symbol: e.symbol, event_id: e.id })))
-    .sort((a, b) => (b.date || "").localeCompare(a.date || "") || (a.symbol || "").localeCompare(b.symbol || ""));
+  // Reasons tab: each stock's row, with its reasons under it (same order as the watchlist)
+  const groups = events
+    .filter((e) => match(e) && (e.reasons || []).length > 0)
+    .sort((a, b) => (b.reaction_day || b.meeting_date || "").localeCompare(a.reaction_day || a.meeting_date || "") || (a.symbol || "").localeCompare(b.symbol || ""))
+    .map((e) => ({ e, reasons: [...e.reasons].sort(byDayThenDate) }));
 
   const selected = events.find((e) => e.id === sel);
   const last = runs[0];
@@ -245,49 +305,17 @@ export default function Dashboard() {
         <>
           <section className="panel">
             <ul className="cards narrow-only">
-              {rows.map((e) => {
-                const ca = isNum(e.cum_abnormal) ? e.cum_abnormal : cum(e.prices, "abnormal");
-                const d1 = day1(e.prices, "log_return");
-                return (
-                  <li key={e.id} className={`card tap ${sel === e.id ? "sel" : ""}`} onClick={() => (sel === e.id ? setSel(null) : open(e.id))}>
-                    <div className="card-top">
-                      <span><button type="button" className="sym">{e.symbol}</button><span className="co">{e.company}</span></span>
-                      <Pill status={e.status} />
-                    </div>
-                    <div className="card-nums">
-                      <span><span className="note">Day 1</span><b className={`num ${tone(d1)}`}>{pct(d1)}</b></span>
-                      <span><span className="note">Abnormal so far</span><b className={`num ${tone(ca)}`}>{pct(ca)}</b></span>
-                      <span><span className="note">Progress</span><b className="num">{e.day_count || 0}/5</b></span>
-                    </div>
-                    <div className="note">
-                      {e.results_filed_at ? `Filed ${fmtStamp(e.results_filed_at)} · reaction ${fmtDay(e.reaction_day)}` : e.meeting_date ? `Board meeting ${fmtDay(e.meeting_date)}` : ""}
-                    </div>
-                  </li>
-                );
-              })}
+              {rows.map((e) => (
+                <StockCard key={e.id} e={e} selected={sel === e.id} onClick={() => (sel === e.id ? setSel(null) : open(e.id))} />
+              ))}
             </ul>
             <div className="scroll wide-only">
               <table>
-                <thead><tr>
-                  <th>Stock</th><th>Results filed (IST)</th><th>Reaction day</th><th>Progress</th>
-                  <th className="n">Day 1</th><th className="n">Day 1 abnormal</th><th className="n">Total so far</th><th className="n">Abnormal so far</th><th>Status</th>
-                </tr></thead>
+                <thead>{STOCK_HEAD}</thead>
                 <tbody>
-                  {rows.map((e) => {
-                    const cr = isNum(e.cum_log_return) ? e.cum_log_return : cum(e.prices, "log_return");
-                    const ca = isNum(e.cum_abnormal) ? e.cum_abnormal : cum(e.prices, "abnormal");
-                    const vals = [day1(e.prices, "log_return"), day1(e.prices, "abnormal"), cr, ca];
-                    return (
-                      <tr key={e.id} className={`row ${sel === e.id ? "sel" : ""}`} onClick={() => (sel === e.id ? setSel(null) : open(e.id))}>
-                        <td><button type="button" className="sym">{e.symbol}</button><span className="co">{e.company}</span></td>
-                        <td className="num">{e.results_filed_at ? fmtStamp(e.results_filed_at) : e.meeting_date ? `Meeting ${fmtDay(e.meeting_date)}` : "—"}</td>
-                        <td>{fmtDay(e.reaction_day)}</td>
-                        <td><span className="prog">{[1, 2, 3, 4, 5].map((i) => <i key={i} className={i <= (e.day_count || 0) ? "on" : ""} />)}</span><span className="note">{e.day_count || 0}/5</span></td>
-                        {vals.map((v, i) => <td key={i} className={`n ${tone(v)}`}>{pct(v)}</td>)}
-                        <td><Pill status={e.status} /></td>
-                      </tr>
-                    );
-                  })}
+                  {rows.map((e) => (
+                    <StockRow key={e.id} e={e} selected={sel === e.id} onClick={() => (sel === e.id ? setSel(null) : open(e.id))} />
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -304,13 +332,32 @@ export default function Dashboard() {
       {tab === "reasons" && (
         <section className="panel">
           <div className="scroll wide-only">
-            <table>
-              <thead><tr><th>Stock</th><th>Day</th><th>Date</th><th></th><th>Category</th><th>Reason</th><th>Source</th><th>Matches numbers</th></tr></thead>
-              <tbody>{reasons.map((r, i) => <ReasonRow key={i} r={r} onOpen={open} />)}</tbody>
+            <table className="grouped">
+              <thead>{STOCK_HEAD}</thead>
+              {groups.map(({ e, reasons }) => (
+                <tbody key={e.id} className="group">
+                  <StockRow e={e} onClick={() => open(e.id)} />
+                  <tr className="sub">
+                    <td colSpan={9}>
+                      <table className="subtable">
+                        <thead><tr><th>Day</th><th>Date</th><th></th><th>Category</th><th>Reason</th><th>Source · published</th><th>Matches numbers</th></tr></thead>
+                        <tbody>{reasons.map((r, i) => <ReasonRow key={i} r={r} />)}</tbody>
+                      </table>
+                    </td>
+                  </tr>
+                </tbody>
+              ))}
             </table>
           </div>
-          <ul className="cards narrow-only">{reasons.map((r, i) => <ReasonCard key={i} r={r} onOpen={open} />)}</ul>
-          {reasons.length === 0 && <div className="empty"><b>No reasons yet.</b><span>The evening run reads news for each stock on the radar and adds them here.</span></div>}
+          <div className="narrow-only">
+            {groups.map(({ e, reasons }) => (
+              <div key={e.id} className="group-card">
+                <ul className="cards"><StockCard e={e} onClick={() => open(e.id)} /></ul>
+                <ul className="cards sub-cards">{reasons.map((r, i) => <ReasonCard key={i} r={r} />)}</ul>
+              </div>
+            ))}
+          </div>
+          {groups.length === 0 && <div className="empty"><b>No reasons yet.</b><span>The evening run reads news for each stock on the radar and adds them here.</span></div>}
         </section>
       )}
 

@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const LINKS = [["/", "Overview"], ["/radar", "Radar"]];
+const LINKS = [["/", "Overview"], ["/radar", "Radar"], ["/results", "Past results"]];
 
 export default function Nav() {
   const path = usePathname();

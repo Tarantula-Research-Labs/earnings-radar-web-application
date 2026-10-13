@@ -10,7 +10,8 @@ This app shows the data the Earnings Radar pipeline stores in
 | Page | What it shows |
 |---|---|
 | `/` | Overview: biggest reaction-day moves, season figures, how it works, method, latest reasons |
-| `/radar` | Full dashboard: watchlist, stock detail with chart, reasons, run log, CSV downloads |
+| `/radar` | Full dashboard: watchlist, stock detail with chart, reasons, run log, CSV downloads. `/radar?stock=TCS_Q2FY27` opens one stock |
+| `/results` | Past results: every stock that finished its 5 days, with its summary and path vs sector |
 
 - The site is public. AWS keys never reach the browser: pages and `/api/*` read S3 on the server with the **read-only** key of the IAM user `earnings-radar-reader`.
 - `/api/radar` is cached at Vercel's edge for 60 seconds, and the home page is rebuilt at most every 2 minutes, so traffic does not hit S3 on every visit.
@@ -27,6 +28,9 @@ npm run dev
 ```
 Open http://localhost:3000.
 
+To try the site on saved files instead of S3, set `RADAR_LOCAL_DIR` to a folder laid out like the bucket
+(`<dir>/earnings-radar/Q2FY27/events.json`, `runs.json`).
+
 ## Deploy on Vercel
 
 Import the repo, add the variables from `.env.example` under **Settings → Environment Variables**, deploy.
@@ -41,6 +45,8 @@ Vercel reserves names starting with `AWS_`, which is why the variables are calle
 | `app/page.js` | Home page |
 | `app/radar/Dashboard.js` | The dashboard |
 | `app/Chart.js` | Stock vs sector chart |
+| `app/Spark.js` | Small 5-day line used on Past results |
+| `app/results/Results.js` | Past results page |
 | `app/Nav.js` | Top bar |
 | `app/api/radar/route.js` | Season data as JSON |
 | `app/api/csv/[name]/route.js` | CSV downloads |
