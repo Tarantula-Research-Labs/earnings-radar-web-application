@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Spark from "../Spark";
 import DownloadMenu from "../DownloadMenu";
+import { verdictText } from "../Outlook";
 import { pct, tone, fmtDay, fmtStamp, isNum, cum } from "@/lib/format";
 
 const SORTS = [
@@ -72,6 +73,14 @@ function ResultCard({ e }) {
         </div>
       )}
 
+      {e.outlook && (
+        <p className="note ol-mini">
+          Our view to next results: <span className={`stance ${e.outlook.stance}`}>{{ positive: "Positive", neutral: "Neutral", negative: "Negative" }[e.outlook.stance]}</span>
+          {" "}<span className={verdictText(e.outlook).cls}>{verdictText(e.outlook).txt}</span>
+          {isNum(e.outlook.track?.excess) ? ` · ${pct(e.outlook.track.excess)} vs sector since day 5` : ""}
+        </p>
+      )}
+
       <footer className="result-foot note">
         <span>{reasons.length} reason{reasons.length === 1 ? "" : "s"} collected · {pos} positive · {neg} negative</span>
         <Link href={`/radar?stock=${encodeURIComponent(e.id)}`}>Prices, chart and all reasons</Link>
@@ -133,7 +142,7 @@ export default function Results() {
           </div>
         </div>
         <DownloadMenu season={season} seasons={data?.seasons || []} defaultStocks="past"
-          defaultTables={["summaries", "fundamentals", "reasons", "prices"]} />
+          defaultTables={["summaries", "fundamentals", "reasons", "prices", "outlook"]} />
       </header>
 
       {error && <div className="banner">{error} Reload the page to try again.</div>}

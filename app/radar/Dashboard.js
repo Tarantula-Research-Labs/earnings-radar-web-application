@@ -3,10 +3,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Chart from "../Chart";
 import Fundamentals from "../Fundamentals";
 import DownloadMenu from "../DownloadMenu";
+import Outlook, { OutlookCard } from "../Outlook";
 import { pct, tone, fmtDay, fmtStamp, STATUS, bucket, day1, cum, isNum } from "@/lib/format";
 
-const TABS = [["watch", "Watchlist"], ["reasons", "Reasons"], ["runs", "Run log"]];
-const CSVS = ["events", "prices", "reasons", "fundamentals", "summaries", "run_log"];
+const TABS = [["watch", "Watchlist"], ["reasons", "Reasons"], ["runs", "Run log"], ["outlook", "Outlook"]];
+const CSVS = ["events", "prices", "reasons", "fundamentals", "summaries", "outlook", "run_log"];
 
 function Pill({ status }) {
   const cls = status === "tracking" ? "tracking" : status === "done" ? "done" : bucket(status) === "waiting" && status !== "waiting" ? "warn" : "";
@@ -178,6 +179,14 @@ function Detail({ e, onClose }) {
             </div>
           </div>
         </div>
+
+        {e.outlook && (
+          <div className="ol-detail">
+            <h3>Our view to next results</h3>
+            <OutlookCard e={e} compact />
+            <p className="note">Model-generated research view, scored against the sector index. Not investment advice.</p>
+          </div>
+        )}
 
         <Fundamentals e={e} />
 
@@ -374,6 +383,8 @@ export default function Dashboard() {
           {groups.length === 0 && <div className="empty"><b>No reasons yet.</b><span>The evening run reads news for each stock on the radar and adds them here.</span></div>}
         </section>
       )}
+
+      {tab === "outlook" && <Outlook events={events} match={match} onOpen={open} loaded={!!data} />}
 
       {tab === "runs" && (
         <section className="panel">

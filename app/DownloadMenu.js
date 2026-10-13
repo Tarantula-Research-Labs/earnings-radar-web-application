@@ -7,6 +7,7 @@ const TABLE_OPTS = [
   ["reasons", "Reasons", "News and broker reasons"],
   ["fundamentals", "Fundamentals", "Day 1 and Day 5 tables"],
   ["summaries", "5-day summaries", "Verdict, what helped, what hurt"],
+  ["outlook", "Outlook", "Our view to next results and its track record"],
   ["run_log", "Run log", "Every scheduled run"],
 ];
 const STOCK_OPTS = [["all", "All stocks"], ["active", "Being tracked now"], ["past", "Past results only"]];

@@ -10,13 +10,14 @@ This app shows the data the Earnings Radar pipeline stores in
 | Page | What it shows |
 |---|---|
 | `/` | Overview: biggest reaction-day moves, season figures, how it works, method, latest reasons |
-| `/radar` | Full dashboard: watchlist, stock detail with chart, reasons, run log, CSV downloads. `/radar?stock=TCS_Q2FY27` opens one stock |
+| `/radar` | Full dashboard: watchlist, stock detail with chart, reasons, run log, outlook, CSV downloads. `/radar?stock=TCS_Q2FY27` opens one stock |
 | `/results` | Past results: every stock that finished its 5 days, with its summary and path vs sector |
 
 - The site is public. AWS keys never reach the browser: pages and `/api/*` read S3 on the server with the **read-only** key of the IAM user `earnings-radar-reader`.
 - `/api/radar` is cached at Vercel's edge for 60 seconds, and the home page is rebuilt at most every 2 minutes, so traffic does not hit S3 on every visit.
 - **Download** menu (Radar and Past results): pick tables, stocks (all / being tracked / past results) and seasons (this one / all). One table downloads as CSV, several as a ZIP of CSVs. Every row has `season`, `symbol` and `company`. Built by `/api/export?tables=reasons,fundamentals&stocks=past&seasons=all`.
-- `/api/csv/<table>` returns the pipeline's own CSV for one season (`events`, `prices`, `reasons`, `fundamentals`, `summaries`, `run_log`).
+- `/api/csv/<table>` returns the pipeline's own CSV for one season (`events`, `prices`, `reasons`, `fundamentals`, `summaries`, `outlook`, `run_log`).
+- **Outlook** tab (Radar): the evening run's view of each stock until its next results (stance vs sector, confidence, bull/base/bear with odds, watch/catalysts/risks), written once after day 5 and scored every evening. The top shows the track record: on track / off track now, and the hit rate once outlooks reach next results.
 - On phones the tables switch to cards.
 
 ## Run on your computer
@@ -54,4 +55,5 @@ Vercel reserves names starting with `AWS_`, which is why the variables are calle
 | `app/api/export/route.js` + `lib/export.js` | Download menu: chosen tables, stocks and seasons as CSV or ZIP |
 | `app/DownloadMenu.js` | The Download menu |
 | `app/Fundamentals.js` | Day 1 / Day 5 fundamentals tables |
+| `app/Outlook.js` | Outlook tab, outlook cards and track record |
 | `middleware.js` | Placeholder from the old login; safe to delete |

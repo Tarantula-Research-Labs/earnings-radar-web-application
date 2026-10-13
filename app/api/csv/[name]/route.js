@@ -2,7 +2,7 @@ import { readText, validSeason, listSeasons } from "@/lib/s3";
 
 export const dynamic = "force-dynamic";
 
-const ALLOWED = new Set(["events", "prices", "reasons", "summaries", "run_log", "fundamentals"]);
+const ALLOWED = new Set(["events", "prices", "reasons", "summaries", "run_log", "fundamentals", "outlook"]);
 
 // GET /api/csv/reasons?season=Q2FY27  ->  reasons_Q2FY27.csv download
 export async function GET(req, { params }) {
