@@ -15,7 +15,11 @@ export const viewport = { width: "device-width", initialScale: 1, viewportFit: "
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+    <html lang="en" className={`${sans.variable} ${mono.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Apply the saved theme before the page paints, so there is no flash of the wrong colours. */}
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem("tremor-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}` }} />
+      </head>
       <body>
         <Nav />
         {children}

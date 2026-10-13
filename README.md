@@ -18,6 +18,7 @@ This app shows the data the Earnings Radar pipeline stores in
 - **Download** menu (Radar and Past results): pick tables, stocks (all / being tracked / past results) and seasons (this one / all). One table downloads as CSV, several as a ZIP of CSVs. Every row has `season`, `symbol` and `company`. Built by `/api/export?tables=reasons,fundamentals&stocks=past&seasons=all`.
 - `/api/csv/<table>` returns the pipeline's own CSV for one season (`events`, `prices`, `reasons`, `fundamentals`, `summaries`, `outlook`, `run_log`).
 - **Outlook** tab (Radar): the evening run's view of each stock until its next results (stance vs sector, confidence, bull/base/bear with odds, watch/catalysts/risks), written once after day 5 and scored every evening. The top shows the track record: on track / off track now, and the hit rate once outlooks reach next results.
+- **Hypotheses** tab (Radar): every 15 days (13th and 28th), one hypothesis per sector for the stocks that filed results in that window, with the results, news and analyst views behind it, the evidence, and the sector's numbers. Pick older windows from the dropdown. Read from `s3://…/earnings-radar/hypotheses/hypotheses.json`; `/api/csv/hypotheses` downloads every window.
 - On phones the tables switch to cards.
 
 ## Run on your computer
@@ -56,4 +57,5 @@ Vercel reserves names starting with `AWS_`, which is why the variables are calle
 | `app/DownloadMenu.js` | The Download menu |
 | `app/Fundamentals.js` | Day 1 / Day 5 fundamentals tables |
 | `app/Outlook.js` | Outlook tab, outlook cards and track record |
+| `app/Hypotheses.js` | Hypotheses tab: sector hypotheses by 15-day window |
 | `middleware.js` | Placeholder from the old login; safe to delete |

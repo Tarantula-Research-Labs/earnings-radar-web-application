@@ -24,6 +24,20 @@ function elapsed(o) {
   return Math.max(0, Math.min(1, ((c || a) - a) / (b - a)));
 }
 
+// Favourable → risky ranking: a positive view with high confidence first, a negative view with
+// high confidence last. Ties: wider bull-minus-bear odds, then how the view is doing vs the sector.
+const CONF_W = { high: 3, medium: 2, low: 1 };
+const STANCE_V = { positive: 1, neutral: 0, negative: -1 };
+export function outlookScore(o) {
+  if (!o) return null;
+  const sc = o.scenarios || {};
+  const odds = isNum(sc.bull?.odds) && isNum(sc.bear?.odds) ? (sc.bull.odds - sc.bear.odds) / 100 : 0;
+  const ex = isNum(o.track?.excess) ? o.track.excess : 0;
+  return (STANCE_V[o.stance] ?? 0) * (CONF_W[o.confidence] || 1) * 10 + odds + ex;
+}
+const byFav = (a, b) => outlookScore(b.outlook) - outlookScore(a.outlook);
+const SORTS = [["fav", "Most favourable → riskiest"], ["risk", "Riskiest → most favourable"], ["new", "Newest first"]];
+
 function Stance({ s }) {
   return <span className={`stance ${s || ""}`}>{STANCE[s] || "—"}</span>;
 }
@@ -137,10 +151,12 @@ const FILTERS = [["all", "All"], ["positive", "Positive"], ["neutral", "Neutral"
 
 export default function Outlook({ events, match, onOpen, loaded }) {
   const [f, setF] = useState("all");
+  const [sort, setSort] = useState("fav");
   const all = events.filter((e) => e.outlook);
   const list = all
     .filter((e) => match(e) && (f === "all" || e.outlook.stance === f))
-    .sort((a, b) => (b.outlook.as_of || "").localeCompare(a.outlook.as_of || "") || (a.symbol || "").localeCompare(b.symbol || ""));
+    .sort((a, b) => sort === "fav" ? byFav(a, b) : sort === "risk" ? byFav(b, a)
+      : (b.outlook.as_of || "").localeCompare(a.outlook.as_of || "") || (a.symbol || "").localeCompare(b.symbol || ""));
   const due = events.filter((e) => !e.outlook && (e.day_count || 0) >= 5);
 
   return (
@@ -160,10 +176,15 @@ export default function Outlook({ events, match, onOpen, loaded }) {
             <button key={k} type="button" aria-pressed={f === k} onClick={() => setF(k)}>{label}</button>
           ))}
         </div>
-        <span className="note">
-          Right when: positive beats the sector by over 2%, negative trails it by over 2%, neutral stays within 3%.
-        </span>
+        <select className="season" value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Sort outlooks">
+          {SORTS.map(([k, label]) => <option key={k} value={k}>{label}</option>)}
+        </select>
       </div>
+      <p className="note ol-rules">
+        Order: positive views with high confidence first, then lower confidence, neutral, and negative views with high
+        confidence last; ties go to wider bull-over-bear odds. Right when: positive beats the sector by over 2%, negative
+        trails it by over 2%, neutral stays within 3%.
+      </p>
 
       {due.length > 0 && (
         <p className="note">Outlook due on the next evening run: {due.map((e) => e.symbol).join(", ")}</p>

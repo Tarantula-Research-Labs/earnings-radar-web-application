@@ -7,8 +7,15 @@
   --mono: var(--font-mono), ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   color-scheme: light;
 }
+/* Dark theme: follows the device unless the viewer picks one with the toggle (data-theme on <html>). */
+:root[data-theme="dark"] {
+    --bg: #101316; --panel: #171b1f; --ink: #e7eaed; --ink-2: #a8b0b9; --ink-3: #7b858f; --line: #2a3036;
+    --accent: #6eaedc; --accent-soft: #1b2a36; --up: #43c07a; --down: #ee6a61; --warn: #e2a43c; --warn-soft: #2e2414;
+    --s1: #3987e5; --s2: #d95926; --grid: #22282d;
+    color-scheme: dark;
+}
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #101316; --panel: #171b1f; --ink: #e7eaed; --ink-2: #a8b0b9; --ink-3: #7b858f; --line: #2a3036;
     --accent: #6eaedc; --accent-soft: #1b2a36; --up: #43c07a; --down: #ee6a61; --warn: #e2a43c; --warn-soft: #2e2414;
     --s1: #3987e5; --s2: #d95926; --grid: #22282d;
@@ -334,3 +341,37 @@ tr.sub > td { padding: 0 12px 14px 28px; }
 }
 .ol-mini { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .ol-head .sym { justify-self: start; text-align: left; font-size: 15px; }
+
+/* Hypotheses tab: one card per sector per 15-day window */
+.hy { padding: 16px; display: grid; gap: 12px; align-content: start; }
+.hy-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.hy-head h2 { font-size: 16px; }
+.hy-stats { margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; border-block: 1px solid var(--grid); padding-block: 10px; }
+.hy-stats div { display: grid; gap: 1px; min-width: 0; }
+.hy-stats dt { font-size: 12px; color: var(--ink-2); }
+.hy-stats dd { margin: 0; font-size: 16px; font-weight: 500; }
+.hy-claim { margin: 0; font-size: 15px; font-weight: 500; border-left: 3px solid var(--accent); padding-left: 10px; max-width: 72ch; }
+.hy-views { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.hy-views p { margin: 0; font-size: 13px; color: var(--ink-2); }
+.hy-list { margin: 0; padding-left: 18px; display: grid; gap: 3px; font-size: 13px; }
+.hy-change { margin: 0; font-size: 13px; color: var(--ink-2); }
+.hy-stocks { display: flex; flex-wrap: wrap; gap: 6px; border-top: 1px solid var(--grid); padding-top: 10px; }
+.hy-chip { display: inline-flex; gap: 6px; align-items: baseline; border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 3px 10px; font-size: 12px; }
+.hy-chip:hover { border-color: var(--accent); }
+.hy-chip .num:first-child { color: var(--accent); font-weight: 500; }
+@media (max-width: 640px) {
+  .hy-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hy-views { grid-template-columns: minmax(0, 1fr); }
+  .hy { padding: 14px; }
+}
+.bar > .tabs { min-width: 0; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.tab { white-space: nowrap; }
+.wrap > * { min-width: 0; }
+
+/* Theme toggle in the top bar */
+.theme-btn { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel); color: var(--ink-2); padding: 0; flex: none; }
+.theme-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+.theme-btn svg { width: 16px; height: 16px; }
+.nav-right { display: flex; align-items: center; gap: 8px; }
+@media (max-width: 420px) { .nav-link { padding: 6px 7px; } }
+.ol-rules { margin: -6px 0 0; }

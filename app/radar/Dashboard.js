@@ -4,9 +4,10 @@ import Chart from "../Chart";
 import Fundamentals from "../Fundamentals";
 import DownloadMenu from "../DownloadMenu";
 import Outlook, { OutlookCard } from "../Outlook";
+import Hypotheses from "../Hypotheses";
 import { pct, tone, fmtDay, fmtStamp, STATUS, bucket, day1, cum, isNum } from "@/lib/format";
 
-const TABS = [["watch", "Watchlist"], ["reasons", "Reasons"], ["runs", "Run log"], ["outlook", "Outlook"]];
+const TABS = [["watch", "Watchlist"], ["reasons", "Reasons"], ["runs", "Run log"], ["outlook", "Outlook"], ["hypo", "Hypotheses"]];
 const CSVS = ["events", "prices", "reasons", "fundamentals", "summaries", "outlook", "run_log"];
 
 function Pill({ status }) {
@@ -385,6 +386,8 @@ export default function Dashboard() {
       )}
 
       {tab === "outlook" && <Outlook events={events} match={match} onOpen={open} loaded={!!data} />}
+
+      {tab === "hypo" && <Hypotheses windows={data?.hypotheses} onOpen={open} loaded={!!data} q={q} />}
 
       {tab === "runs" && (
         <section className="panel">

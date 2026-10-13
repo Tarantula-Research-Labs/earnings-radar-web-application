@@ -3,13 +3,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Spark from "../Spark";
 import DownloadMenu from "../DownloadMenu";
-import { verdictText } from "../Outlook";
+import { verdictText, outlookScore } from "../Outlook";
 import { pct, tone, fmtDay, fmtStamp, isNum, cum } from "@/lib/format";
 
 const SORTS = [
   ["recent", "Most recent"],
   ["best", "Best vs sector"],
   ["worst", "Worst vs sector"],
+  ["fav", "Outlook: most favourable first"],
+  ["risk", "Outlook: riskiest first"],
 ];
 const FILTERS = [
   ["all", "All"],
@@ -118,7 +120,9 @@ export default function Results() {
     .filter((e) => !t || (e.symbol || "").toLowerCase().includes(t) || (e.company || "").toLowerCase().includes(t))
     .filter((e) => filter === "all" || (filter === "beat" ? abnOf(e) > 0 : abnOf(e) < 0))
     .sort((a, b) =>
-      sort === "best" ? (abnOf(b) ?? -9) - (abnOf(a) ?? -9)
+      sort === "fav" || sort === "risk"
+        ? (a.outlook ? 0 : 1) - (b.outlook ? 0 : 1) || (sort === "fav" ? 1 : -1) * ((outlookScore(b.outlook) ?? 0) - (outlookScore(a.outlook) ?? 0))
+      : sort === "best" ? (abnOf(b) ?? -9) - (abnOf(a) ?? -9)
       : sort === "worst" ? (abnOf(a) ?? 9) - (abnOf(b) ?? 9)
       : (b.reaction_day || "").localeCompare(a.reaction_day || "") || (a.symbol || "").localeCompare(b.symbol || "")
     );
