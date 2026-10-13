@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Chart from "../Chart";
 import Fundamentals from "../Fundamentals";
+import DownloadMenu from "../DownloadMenu";
 import { pct, tone, fmtDay, fmtStamp, STATUS, bucket, day1, cum, isNum } from "@/lib/format";
 
 const TABS = [["watch", "Watchlist"], ["reasons", "Reasons"], ["runs", "Run log"]];
@@ -281,8 +282,9 @@ export default function Dashboard() {
           <div className="lastrun">
             <span>{last ? <><span className={`dot ${last.status || ""}`} />Last run: {last.task} · {fmtStamp(last.started_at)} · {last.status}</> : <><span className="dot" />No runs yet</>}</span>
             <button type="button" className="refresh" onClick={() => load(season)} disabled={loading}>{loading ? "Loading…" : "Refresh"}</button>
-            <a className="refresh dl" href={`/api/csv/fundamentals${season ? `?season=${season}` : ""}`}
+            <a className="refresh dl" href={`/api/export?tables=fundamentals&stocks=all&seasons=${season || ""}`}
               title="Every stock's Day 1 and Day 5 fundamentals tables, one row per metric, with stock name">Fundamentals CSV</a>
+            <DownloadMenu season={season} seasons={data?.seasons || []} />
           </div>
         </div>
       </header>

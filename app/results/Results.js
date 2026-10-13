@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Spark from "../Spark";
+import DownloadMenu from "../DownloadMenu";
 import { pct, tone, fmtDay, fmtStamp, isNum, cum } from "@/lib/format";
 
 const SORTS = [
@@ -131,7 +132,8 @@ export default function Results() {
             <span>Stocks that finished their five trading days after results.</span>
           </div>
         </div>
-        <a className="btn" href={`/api/csv/summaries${season ? `?season=${season}` : ""}`}>summaries.csv</a>
+        <DownloadMenu season={season} seasons={data?.seasons || []} defaultStocks="past"
+          defaultTables={["summaries", "fundamentals", "reasons", "prices"]} />
       </header>
 
       {error && <div className="banner">{error} Reload the page to try again.</div>}

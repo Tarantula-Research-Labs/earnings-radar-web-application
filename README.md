@@ -15,7 +15,8 @@ This app shows the data the Earnings Radar pipeline stores in
 
 - The site is public. AWS keys never reach the browser: pages and `/api/*` read S3 on the server with the **read-only** key of the IAM user `earnings-radar-reader`.
 - `/api/radar` is cached at Vercel's edge for 60 seconds, and the home page is rebuilt at most every 2 minutes, so traffic does not hit S3 on every visit.
-- `/api/csv/<table>` downloads `events`, `prices`, `reasons`, `summaries` or `run_log`.
+- **Download** menu (Radar and Past results): pick tables, stocks (all / being tracked / past results) and seasons (this one / all). One table downloads as CSV, several as a ZIP of CSVs. Every row has `season`, `symbol` and `company`. Built by `/api/export?tables=reasons,fundamentals&stocks=past&seasons=all`.
+- `/api/csv/<table>` returns the pipeline's own CSV for one season (`events`, `prices`, `reasons`, `fundamentals`, `summaries`, `run_log`).
 - On phones the tables switch to cards.
 
 ## Run on your computer
@@ -49,5 +50,8 @@ Vercel reserves names starting with `AWS_`, which is why the variables are calle
 | `app/results/Results.js` | Past results page |
 | `app/Nav.js` | Top bar |
 | `app/api/radar/route.js` | Season data as JSON |
-| `app/api/csv/[name]/route.js` | CSV downloads |
+| `app/api/csv/[name]/route.js` | The pipeline's CSV for one season |
+| `app/api/export/route.js` + `lib/export.js` | Download menu: chosen tables, stocks and seasons as CSV or ZIP |
+| `app/DownloadMenu.js` | The Download menu |
+| `app/Fundamentals.js` | Day 1 / Day 5 fundamentals tables |
 | `middleware.js` | Placeholder from the old login; safe to delete |
