@@ -81,6 +81,23 @@ tr.row:hover, tr.row.sel { background: var(--accent-soft); }
 .reason { min-width: 260px; }
 .pub { display: block; white-space: nowrap; }
 
+/* Fundamentals tables (Day 1 / Day 5) */
+.fund { display: grid; gap: 8px; margin: 4px 0 14px; }
+.fund-title { margin: 6px 0 2px; }
+.fgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.fview { border: 1px solid var(--line); border-radius: 6px; background: var(--panel); min-width: 0; }
+.fview-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--grid); }
+.fview-head h3 { margin: 0; color: var(--ink); }
+.fview-empty { margin: 0; padding: 10px; }
+.ftable { font-size: 12.5px; }
+.ftable th { font-size: 11px; padding: 6px 8px; }
+.ftable td { padding: 6px 8px; }
+.fbasis, .fnote { display: block; font-size: 11px; color: var(--ink-3); font-family: var(--sans); }
+.fcards .card { padding: 9px 10px; gap: 4px; }
+.sub-pad { padding: 4px 12px 0 12px; }
+.refresh.dl { text-decoration: none; color: var(--accent); border-color: var(--accent); }
+@media (max-width: 1100px) { .fgrid { grid-template-columns: minmax(0, 1fr); } }
+
 /* Past results */
 .figures.small { border-block: 1px solid var(--line); }
 .figures.small .fig { font-size: 24px; }

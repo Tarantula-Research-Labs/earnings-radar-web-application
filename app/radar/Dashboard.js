@@ -1,10 +1,11 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Chart from "../Chart";
+import Fundamentals from "../Fundamentals";
 import { pct, tone, fmtDay, fmtStamp, STATUS, bucket, day1, cum, isNum } from "@/lib/format";
 
 const TABS = [["watch", "Watchlist"], ["reasons", "Reasons"], ["runs", "Run log"]];
-const CSVS = ["events", "prices", "reasons", "summaries", "run_log"];
+const CSVS = ["events", "prices", "reasons", "fundamentals", "summaries", "run_log"];
 
 function Pill({ status }) {
   const cls = status === "tracking" ? "tracking" : status === "done" ? "done" : bucket(status) === "waiting" && status !== "waiting" ? "warn" : "";
@@ -177,6 +178,8 @@ function Detail({ e, onClose }) {
           </div>
         </div>
 
+        <Fundamentals e={e} />
+
         <div>
           <h3>Reasons from news</h3>
           {reasons.length === 0 ? <p className="muted">No reasons collected yet.</p> : (
@@ -246,7 +249,7 @@ export default function Dashboard() {
 
   // Reasons tab: each stock's row, with its reasons under it (same order as the watchlist)
   const groups = events
-    .filter((e) => match(e) && (e.reasons || []).length > 0)
+    .filter((e) => match(e) && ((e.reasons || []).length > 0 || (e.day_count || 0) >= 1))
     .sort((a, b) => (b.reaction_day || b.meeting_date || "").localeCompare(a.reaction_day || a.meeting_date || "") || (a.symbol || "").localeCompare(b.symbol || ""))
     .map((e) => ({ e, reasons: [...e.reasons].sort(byDayThenDate) }));
 
@@ -278,6 +281,8 @@ export default function Dashboard() {
           <div className="lastrun">
             <span>{last ? <><span className={`dot ${last.status || ""}`} />Last run: {last.task} · {fmtStamp(last.started_at)} · {last.status}</> : <><span className="dot" />No runs yet</>}</span>
             <button type="button" className="refresh" onClick={() => load(season)} disabled={loading}>{loading ? "Loading…" : "Refresh"}</button>
+            <a className="refresh dl" href={`/api/csv/fundamentals${season ? `?season=${season}` : ""}`}
+              title="Every stock's Day 1 and Day 5 fundamentals tables, one row per metric, with stock name">Fundamentals CSV</a>
           </div>
         </div>
       </header>
@@ -339,10 +344,16 @@ export default function Dashboard() {
                   <StockRow e={e} onClick={() => open(e.id)} />
                   <tr className="sub">
                     <td colSpan={9}>
-                      <table className="subtable">
-                        <thead><tr><th>Day</th><th>Date</th><th></th><th>Category</th><th>Reason</th><th>Source · published</th><th>Matches numbers</th></tr></thead>
-                        <tbody>{reasons.map((r, i) => <ReasonRow key={i} r={r} />)}</tbody>
-                      </table>
+                      <Fundamentals e={e} />
+                      {reasons.length > 0 && (
+                        <>
+                          <h3 className="fund-title">Reasons from news</h3>
+                          <table className="subtable">
+                            <thead><tr><th>Day</th><th>Date</th><th></th><th>Category</th><th>Reason</th><th>Source · published</th><th>Matches numbers</th></tr></thead>
+                            <tbody>{reasons.map((r, i) => <ReasonRow key={i} r={r} />)}</tbody>
+                          </table>
+                        </>
+                      )}
                     </td>
                   </tr>
                 </tbody>
@@ -353,7 +364,8 @@ export default function Dashboard() {
             {groups.map(({ e, reasons }) => (
               <div key={e.id} className="group-card">
                 <ul className="cards"><StockCard e={e} onClick={() => open(e.id)} /></ul>
-                <ul className="cards sub-cards">{reasons.map((r, i) => <ReasonCard key={i} r={r} />)}</ul>
+                <div className="sub-cards sub-pad"><Fundamentals e={e} /></div>
+                {reasons.length > 0 && <ul className="cards sub-cards">{reasons.map((r, i) => <ReasonCard key={i} r={r} />)}</ul>}
               </div>
             ))}
           </div>
