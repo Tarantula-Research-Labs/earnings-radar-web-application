@@ -1,12 +1,21 @@
-# Earnings Radar — web viewer
+# Tremor — Tarantula Research Labs
 
-A small Next.js app that shows the Earnings Radar data stored in
+Tremor tracks every Nifty 500 company for five trading days after it reports quarterly
+results: how far the stock moved, how much of that was the stock rather than its sector,
+and what the news said caused it.
+
+This app shows the data the Earnings Radar pipeline stores in
 `s3://trl-earnings-radar/earnings-radar/<season>/`.
 
-- The browser never sees AWS keys. The page calls `/api/radar`, and that route reads S3 on the server with the **read-only** key of the IAM user `earnings-radar-reader`.
-- The whole site sits behind a password (browser login box), set with `SITE_USER` and `SITE_PASSWORD`.
-- `/api/csv/<table>` downloads `events`, `prices`, `reasons`, `summaries` or `run_log` as CSV.
-- The page refreshes itself every 5 minutes. A season picker appears once there is more than one season.
+| Page | What it shows |
+|---|---|
+| `/` | Overview: biggest reaction-day moves, season figures, how it works, method, latest reasons |
+| `/radar` | Full dashboard: watchlist, stock detail with chart, reasons, run log, CSV downloads |
+
+- The site is public. AWS keys never reach the browser: pages and `/api/*` read S3 on the server with the **read-only** key of the IAM user `earnings-radar-reader`.
+- `/api/radar` is cached at Vercel's edge for 60 seconds, and the home page is rebuilt at most every 2 minutes, so traffic does not hit S3 on every visit.
+- `/api/csv/<table>` downloads `events`, `prices`, `reasons`, `summaries` or `run_log`.
+- On phones the tables switch to cards.
 
 ## Run on your computer
 
@@ -16,24 +25,23 @@ copy .env.example .env.local      (Windows)   or   cp .env.example .env.local
 # fill in .env.local
 npm run dev
 ```
-Open http://localhost:3000 and log in with SITE_USER / SITE_PASSWORD.
+Open http://localhost:3000.
 
 ## Deploy on Vercel
 
-1. Push this folder to a GitHub repo.
-2. Vercel → **Add New → Project** → import the repo. Framework: Next.js (auto-detected).
-3. **Settings → Environment Variables** → add every variable from `.env.example` with real values.
-4. Deploy. If you add or change variables later, redeploy.
-
+Import the repo, add the variables from `.env.example` under **Settings → Environment Variables**, deploy.
 Vercel reserves names starting with `AWS_`, which is why the variables are called `RADAR_AWS_…`.
 
 ## Files
 
 | File | What it does |
 |---|---|
-| `middleware.js` | Password for every page and API route |
 | `lib/s3.js` | Reads S3 (server only) |
-| `app/api/radar/route.js` | Returns events + run log for a season as JSON |
-| `app/api/csv/[name]/route.js` | CSV downloads |
-| `app/page.js` | The dashboard |
+| `lib/radar.js` | Loads one season (events + run log) |
+| `app/page.js` | Home page |
+| `app/radar/Dashboard.js` | The dashboard |
 | `app/Chart.js` | Stock vs sector chart |
+| `app/Nav.js` | Top bar |
+| `app/api/radar/route.js` | Season data as JSON |
+| `app/api/csv/[name]/route.js` | CSV downloads |
+| `middleware.js` | Placeholder from the old login; safe to delete |
